@@ -19,7 +19,7 @@ package com.waz.zclient.messages.parts.assets
 
 import android.graphics._
 import android.graphics.drawable.Drawable
-import com.waz.api.AccentColor
+import com.waz.api.impl.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.common.views.ProgressDotsDrawable

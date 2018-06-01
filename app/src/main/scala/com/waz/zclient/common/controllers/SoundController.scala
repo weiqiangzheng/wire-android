@@ -34,9 +34,34 @@ import com.waz.zclient.utils.{DeprecationUtils, RingtoneUtils}
 import com.waz.zclient.utils.RingtoneUtils.{getUriForRawId, isDefaultValue}
 import com.waz.zclient.{R, _}
 
+
+trait SoundController {
+  def currentTonePrefs: (String, String, String)
+
+  def isVibrationEnabled: Boolean
+  def soundIntensityNone: Boolean
+  def soundIntensityFull: Boolean
+
+  def setIncomingRingTonePlaying(play: Boolean): Unit
+  def setOutgoingRingTonePlaying(play: Boolean, isVideo: Boolean = false): Unit
+
+  def playCallEstablishedSound(): Unit
+  def playCallEndedSound(): Unit
+  def playCallDroppedSound(): Unit
+  def playAlert(): Unit
+  def shortVibrate(): Unit
+  def playMessageIncomingSound(firstMessage: Boolean): Unit
+  def playPingFromThem(): Unit
+  def playPingFromMe(): Unit
+  def playCameraShutterSound(): Unit
+  def playRingFromThemInCall(play: Boolean): Unit
+}
+
+
+
 //TODO Dean - would be nice to change these unit methods to listeners on signals from the classes that could trigger sounds.
 //For that, however, we would need more signals in the app, and hence more scala classes...
-class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
+class SoundControllerImpl(implicit inj: Injector, cxt: Context) extends SoundController with Injectable {
 
   private implicit val ev = EventContext.Implicits.global
 
@@ -50,7 +75,9 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   private var _mediaManager = Option.empty[MediaManager]
   mediaManager(m => _mediaManager = Some(m))
 
-  val tonePrefs = (for {
+  def currentTonePrefs: (String, String, String) = tonePrefs.currentValue.getOrElse((null, null, null))
+
+  private val tonePrefs = (for {
     zms <- zms
     ringTone <- zms.userPrefs.preference(UserPreferences.RingTone).signal
     textTone <- zms.userPrefs.preference(UserPreferences.TextTone).signal
@@ -62,16 +89,14 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     case _ =>
   }
 
-  def currentTonePrefs = tonePrefs.currentValue.getOrElse((null, null, null))
+  private val vibrationEnabled = zms.flatMap(_.userPrefs.preference(UserPreferences.VibrateEnabled).signal).disableAutowiring()
 
-  val vibrationEnabled = zms.flatMap(_.userPrefs.preference(UserPreferences.VibrateEnabled).signal).disableAutowiring()
+  override def isVibrationEnabled = vibrationEnabled.currentValue.getOrElse(false)
 
-  def isVibrationEnabled = vibrationEnabled.currentValue.getOrElse(false)
+  override def soundIntensityNone = soundIntensity.currentValue.contains(IntensityLevel.NONE)
+  override def soundIntensityFull = soundIntensity.currentValue.isEmpty || soundIntensity.currentValue.contains(IntensityLevel.FULL)
 
-  def soundIntensityNone = soundIntensity.currentValue.contains(IntensityLevel.NONE)
-  def soundIntensityFull = soundIntensity.currentValue.isEmpty || soundIntensity.currentValue.contains(IntensityLevel.FULL)
-
-  def setIncomingRingTonePlaying(play: Boolean) = {
+  override def setIncomingRingTonePlaying(play: Boolean) = {
     if (!soundIntensityNone) setMediaPlaying(R.raw.ringing_from_them, play)
     setVibrating(R.array.ringing_from_them, play, loop = true)
   }
@@ -80,7 +105,7 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   //TODO - there seems to be a race condition somewhere, where this method is called while isVideo is incorrect
   //This leads to the case where one of the media files starts playing, and we never receive the stop for it. Always ensuring
   //that both files stops is a fix for the symptom, but not the root cause - which could be affecting other things...
-  def setOutgoingRingTonePlaying(play: Boolean, isVideo: Boolean = false) =
+  override def setOutgoingRingTonePlaying(play: Boolean, isVideo: Boolean = false) =
     if (play) {
       if (soundIntensityFull) setMediaPlaying(if (isVideo) R.raw.ringing_from_me_video else R.raw.ringing_from_me, play = true)
     } else {
@@ -88,22 +113,22 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
       setMediaPlaying(R.raw.ringing_from_me, play = false)
     }
 
-  def playCallEstablishedSound() = {
+  override def playCallEstablishedSound() = {
     if (soundIntensityFull) setMediaPlaying(R.raw.ready_to_talk)
     setVibrating(R.array.ready_to_talk)
   }
 
-  def playCallEndedSound() = {
+  override def playCallEndedSound() = {
     if (soundIntensityFull) setMediaPlaying(R.raw.talk_later)
     setVibrating(R.array.talk_later)
   }
 
-  def playCallDroppedSound() = {
+  override def playCallDroppedSound() = {
     if (soundIntensityFull) setMediaPlaying(R.raw.call_drop)
     setVibrating(R.array.call_dropped)
   }
 
-  def playAlert() = {
+  override def playAlert() = {
     if (soundIntensityFull) setMediaPlaying(R.raw.alert)
     setVibrating(R.array.alert)
   }

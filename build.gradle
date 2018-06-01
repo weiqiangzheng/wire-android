@@ -130,7 +130,6 @@ ext {
             threetenabp          : 'com.jakewharton.threetenabp:threetenabp:1.0.3',
             mixpanel             : 'com.mixpanel.android:mixpanel-android:5.2.3',
             rebound              : 'com.facebook.rebound:rebound:0.3.8',
-            supportpreferences   : 'net.xpece.android:support-preference:0.8.1',
 
             // Internal
             audioNotifications   : "com.wire:audio-notifications:$audioVersion",

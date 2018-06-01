@@ -68,7 +68,6 @@ object Deps {
   lazy val localytics = "com.localytics.android" % "library" % "3.8.0"
   lazy val nineoldandroids = "com.nineoldandroids" % "library" % "2.4.0"
   lazy val rebound = "com.facebook.rebound" % "rebound" % "0.3.8"
-  lazy val supportpreferences = "net.xpece.android" % "support-preference" % "0.8.1"
 
   lazy val audioNotifications = "com.wearezeta.avs" % "audio-notifications" % audioVersion
 

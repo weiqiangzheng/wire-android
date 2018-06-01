@@ -18,23 +18,22 @@
 package com.waz.zclient.messages.parts.footer
 
 import android.content.Context
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.Message
 import com.waz.api.Message.Status
 import com.waz.model.MessageData
-import com.waz.service.ZMessaging
-import com.waz.service.messages.MessageAndLikes
+import com.waz.service.messages.{MessageAndLikes, MessagesService}
 import com.waz.threading.CancellableFuture
 import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, EventContext, Signal}
-import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{LikesController, UsersController}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ZTimeFormatter
 import com.waz.zclient.{Injectable, Injector, R}
 import org.threeten.bp.{DateTimeUtils, Instant}
-import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.duration._
 
@@ -44,7 +43,6 @@ import scala.concurrent.duration._
 class FooterViewController(implicit inj: Injector, context: Context, ec: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Ui
 
-  val zms = inject[Signal[ZMessaging]]
   val accents = inject[AccentColorController]
   val selection = inject[ConversationController].messages
   val signals = inject[UsersController]
@@ -114,9 +112,12 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   }
 
   val linkCallback = new Runnable() {
-    def run() = for (z <- zms.head; m <- message.head) {
+    def run() = for {
+      msgs <- inject[Signal[MessagesService]].head
+      m    <- message.head
+    } yield {
       if (m.state == Message.Status.FAILED || m.state == Message.Status.FAILED_READ) {
-        z.messages.retryMessageSending(m.convId, m.id)
+        msgs.retryMessageSending(m.convId, m.id)
       }
     }
   }

@@ -30,7 +30,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget.{LinearLayout, TextView}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api._
+import com.waz.api.impl.AccentColor
 import com.waz.model.Availability
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal

@@ -19,10 +19,10 @@ package com.waz.testutils
 
 import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
 
-import android.support.v4.app.FragmentActivity
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.ZLog.ImplicitTag.implicitLogTag
 import com.waz.utils._
-import com.waz.zclient.{ActivityHelper, Injector, WireContext}
+import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.WireContext
 import org.robolectric.Robolectric
 import org.threeten.bp.Instant
 
@@ -64,6 +64,8 @@ object TestUtils {
   implicit class RichLatch(latch: CountDownLatch) {
     def waitDuration(implicit duration: Duration): Unit = latch.await(duration.toMillis, TimeUnit.MILLISECONDS)
   }
+
+
 }
 
 
@@ -71,10 +73,10 @@ abstract class TestWireContext extends WireContext {
   override def eventContext = EventContext.Implicits.global
 }
 
-class ViewTestActivity extends FragmentActivity with ActivityHelper {
+/*class ViewTestActivity extends FragmentActivity with ActivityHelper {
 
   var inj: Injector = _
 
   override lazy val injector = inj
-}
+}*/
 

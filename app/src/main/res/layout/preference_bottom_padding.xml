@@ -25,8 +25,8 @@
              android:paddingBottom="@dimen/wire__padding__big"
     >
 
-    <include layout="@layout/asp_preference"
+<!--    <include layout="@layout/asp_preference"
              tools:ignore="PrivateResource"
-        />
+        />-->
 
 </FrameLayout>

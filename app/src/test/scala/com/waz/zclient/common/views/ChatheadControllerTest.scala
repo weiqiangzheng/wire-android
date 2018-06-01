@@ -17,27 +17,12 @@
  */
 package com.waz.zclient.common.views
 
-import com.waz.api.impl.ContactDetails
-import com.waz.model.NameSource.Nickname
-import com.waz.model.UserData.ConnectionStatus.Accepted
-import com.waz.model._
-import com.waz.service.{SearchKey, ZMessaging}
-import com.waz.testutils.TestUtils.{PrintValues, signalTest}
-import com.waz.testutils.{MockUiModule, MockZMessaging}
-import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.Module
-import org.junit.runner.RunWith
-import org.junit.{Before, Test}
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
+import org.scalatest.Ignore
 import org.scalatest.junit.JUnitSuite
 
-import scala.collection.GenSet
-
-@RunWith(classOf[RobolectricTestRunner])
-@Config(manifest=Config.NONE)
+@Ignore
 class ChatheadControllerTest extends JUnitSuite {
-
+/*
   implicit val printSignalVals: PrintValues = false
   implicit val eventContext = EventContext.Implicits.global
 
@@ -107,5 +92,5 @@ class ChatheadControllerTest extends JUnitSuite {
     val connection = if (known) Accepted else UserData.ConnectionStatus.Unconnected
     zMessaging.insertUser(new UserData(userId, name = "Some Name", connection = connection, searchKey = SearchKey(""), handle = None))
     userId
-  }
+  }*/
 }

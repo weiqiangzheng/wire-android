@@ -1,9 +1,7 @@
 /**
  * This gradle build script (and thus the module) is needed for the lintDevDebug task to function properly.
  */
-
 apply plugin: 'com.android.library'
-
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -21,9 +19,8 @@ android {
         }
     }
 }
-
 project.afterEvaluate {
-    def compileLintTask = project.tasks.find {it.name == 'compileLint'}
+    def compileLintTask = project.tasks.find { it.name == 'compileLint' }
     compileLintTask.dependsOn ':lintrules:jar'
     compileLintTask.doLast {
         copy {
