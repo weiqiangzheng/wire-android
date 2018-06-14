@@ -23,7 +23,7 @@ import com.waz.ZLog._
 import com.waz.api
 import com.waz.api.MessageContent.Asset.ErrorHandler
 import com.waz.api.impl.{AssetForUpload, ImageAsset}
-import com.waz.api.{EphemeralExpiration, IConversation, Verification}
+import com.waz.api.{IConversation, Verification}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.model.otr.Client
@@ -111,7 +111,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
       ms <- z.membersStorage.getActiveUsers(conv)
     } yield ms
 
-  def setEphemeralExpiration(expiration: EphemeralExpiration): Future[Unit] = for {
+  def setEphemeralExpiration(expiration: Option[FiniteDuration]): Future[Unit] = for {
     z <- zms.head
     id <- currentConvId.head
     _ <- z.convsUi.setEphemeral(id, expiration)

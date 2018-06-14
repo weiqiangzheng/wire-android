@@ -35,7 +35,7 @@ import com.waz.utils.returning
 import com.waz.zclient.ui.views.OnDoubleClickListener
 import com.waz.zclient.utils.ContextUtils._
 
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration._
 
 package object utils {
 

@@ -537,9 +537,8 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       cursorView.onExtendedCursorClosed()
 
       if (lastType == ExtendedCursorContainer.Type.EPHEMERAL)
-        convController.currentConv.head.map { conv =>
-          if (conv.ephemeral != EphemeralExpiration.NONE)
-            getControllerFactory.getUserPreferencesController.setLastEphemeralValue(conv.ephemeral.milliseconds)
+        convController.currentConv.head.map {
+          _.ephemeralExpiration.map{exp => getControllerFactory.getUserPreferencesController.setLastEphemeralValue(exp.duration.toMillis)}
         }
 
       getControllerFactory.getGlobalLayoutController.resetScreenAwakeState()
@@ -550,8 +549,8 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       case ExtendedCursorContainer.Type.NONE =>
       case ExtendedCursorContainer.Type.EMOJIS =>
         extendedCursorContainer.openEmojis(getControllerFactory.getUserPreferencesController.getRecentEmojis, getControllerFactory.getUserPreferencesController.getUnsupportedEmojis, emojiKeyboardLayoutCallback)
-      case ExtendedCursorContainer.Type.EPHEMERAL => convController.currentConv.head.map { conv =>
-        extendedCursorContainer.openEphemeral(ephemeralLayoutCallback, conv.ephemeral)
+      case ExtendedCursorContainer.Type.EPHEMERAL => convController.currentConv.head.map(_.ephemeralExpiration.map(_.duration)).map { duration =>
+        extendedCursorContainer.openEphemeral(ephemeralLayoutCallback, duration.get) //TODO: throw error here, .get is ugly
       }
       case ExtendedCursorContainer.Type.VOICE_FILTER_RECORDING =>
         extendedCursorContainer.openVoiceFilter(voiceFilterLayoutCallback)
@@ -570,7 +569,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   }
 
   private val ephemeralLayoutCallback = new EphemeralLayout.Callback {
-    override def onEphemeralExpirationSelected(expiration: EphemeralExpiration, close: Boolean) = {
+    override def onEphemeralExpirationSelected(expiration: Option[FiniteDuration], close: Boolean) = {
       if (close) extendedCursorContainer.close(false)
       convController.setEphemeralExpiration(expiration)
     }

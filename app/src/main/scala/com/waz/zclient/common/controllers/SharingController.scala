@@ -35,6 +35,7 @@ import com.waz.zclient.{Injectable, Injector, R, WireContext}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 
 class SharingController(implicit injector: Injector, wContext: WireContext, eventContext: EventContext) extends Injectable{
 
@@ -44,9 +45,9 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
 
   val sharableContent     = Signal(Option.empty[SharableContent])
   val targetConvs         = Signal(Set.empty[ConvId])
-  val ephemeralExpiration = Signal(EphemeralExpiration.NONE)
+  val ephemeralExpiration = Signal(Option.empty[FiniteDuration])
 
-  val sendEvent = EventStream[(SharableContent, Set[ConvId], EphemeralExpiration)]()
+  val sendEvent = EventStream[(SharableContent, Set[ConvId], Option[FiniteDuration])]()
 
   private def assetErrorHandler(activity: Activity): MessageContent.Asset.ErrorHandler = new MessageContent.Asset.ErrorHandler() {
     def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = {
@@ -83,7 +84,7 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
   }
 
   def sendContent(activity: Activity): Future[Unit] = {
-    def send(content: SharableContent, convs: Set[ConvId], expiration: EphemeralExpiration): Future[Boolean] = {
+    def send(content: SharableContent, convs: Set[ConvId], expiration: Option[FiniteDuration]): Future[Boolean] = {
       sendEvent ! (content, convs, expiration)
       content match {
         case TextContent(t) =>
@@ -119,7 +120,7 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
   private def resetContent() = {
     sharableContent.publish(None, dispatcher)
     targetConvs.publish(Set.empty, dispatcher)
-    ephemeralExpiration.publish(EphemeralExpiration.NONE, dispatcher)
+    ephemeralExpiration.publish(None, dispatcher)
   }
 
   def clearSharingFor(convId: ConvId) = if (convId != null) {

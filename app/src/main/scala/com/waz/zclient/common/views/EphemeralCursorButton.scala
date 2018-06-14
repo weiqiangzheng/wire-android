@@ -19,7 +19,6 @@ package com.waz.zclient.common.views
 
 import android.content.Context
 import android.util.{AttributeSet, TypedValue}
-import com.waz.api.EphemeralExpiration
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.{R, ViewHelper}
@@ -27,27 +26,31 @@ import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.ui.utils.{ColorUtils, TypefaceUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 
+import java.util.concurrent.TimeUnit.{DAYS, MINUTES}
+
+import scala.concurrent.duration.FiniteDuration
+
 class EphemeralCursorButton(context: Context, attrs: AttributeSet, defStyleAttr: Int) extends CursorIconButton(context, attrs, defStyleAttr) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
   val accentColorController = inject[AccentColorController]
-  val ephemeralExpiration = Signal[EphemeralExpiration](EphemeralExpiration.NONE)
+  val ephemeralExpiration = Signal[Option[FiniteDuration]](None)
 
   accentColorController.accentColor.zip(ephemeralExpiration).on(Threading.Ui){
     case (accentColor, expiration) =>
-      val value = expiration match {
-        case EphemeralExpiration.ONE_DAY =>
-          getResources.getString(R.string.cursor__ephemeral_message__timer_days, String.valueOf(expiration.milliseconds / 1000 / 60 / 60 / 24))
-        case EphemeralExpiration.ONE_MINUTE | EphemeralExpiration.FIVE_MINUTES =>
-          getResources.getString(R.string.cursor__ephemeral_message__timer_min, String.valueOf(expiration.milliseconds / 1000 / 60))
-        case EphemeralExpiration.NONE =>
+      val value = expiration.map(_.unit) match {
+        case Some(DAYS) =>
+          getResources.getString(R.string.cursor__ephemeral_message__timer_days, expiration.get.toDays.toString)
+        case Some(MINUTES) =>
+          getResources.getString(R.string.cursor__ephemeral_message__timer_min, expiration.get.toMinutes.toString)
+        case None =>
           getResources.getString(R.string.glyph__hourglass)
         case _ =>
-          getResources.getString(R.string.cursor__ephemeral_message__timer_seconds, String.valueOf(expiration.milliseconds / 1000))
+          getResources.getString(R.string.cursor__ephemeral_message__timer_seconds, expiration.get.toSeconds.toString)
       }
       setText(value)
-      if (expiration == EphemeralExpiration.NONE) {
+      if (expiration.isEmpty) {
         setBackground(null)
         setTypeface(TypefaceUtils.getTypeface(TypefaceUtils.getGlyphsTypefaceName))
         setTextSize(TypedValue.COMPLEX_UNIT_PX, getContext.getResources.getDimensionPixelSize(R.dimen.wire__text_size__regular))
@@ -61,7 +64,7 @@ class EphemeralCursorButton(context: Context, attrs: AttributeSet, defStyleAttr:
     case _ =>
   }
 
-  def setExpiration(ephemeralExpiration: EphemeralExpiration): Unit = {
+  def setExpiration(ephemeralExpiration: Option[FiniteDuration]): Unit = {
     this.ephemeralExpiration ! ephemeralExpiration
   }
 }

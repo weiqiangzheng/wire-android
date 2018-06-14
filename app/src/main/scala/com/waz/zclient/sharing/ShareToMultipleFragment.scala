@@ -30,7 +30,6 @@ import android.widget.LinearLayout.LayoutParams
 import android.widget.TextView.OnEditorActionListener
 import android.widget._
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.EphemeralExpiration
 import com.waz.api.impl.ContentUriAssetForUpload
 import com.waz.model.AssetMetaData.Image.Tag
 import com.waz.model.ConversationData.ConversationType
@@ -56,6 +55,7 @@ import com.waz.zclient.utils.ContextUtils.{getDimenPx, showToast}
 import com.waz.zclient.utils.{RichView, ViewUtils}
 
 import scala.util.Success
+import scala.concurrent.duration.FiniteDuration
 
 
 class ShareToMultipleFragment extends FragmentHelper with OnBackPressedListener {
@@ -194,9 +194,9 @@ class ShareToMultipleFragment extends FragmentHelper with OnBackPressedListener 
             bc.closedAnimated()
           case Some(false) =>
             returning(getLayoutInflater.inflate(R.layout.ephemeral_keyboard_layout, null, false).asInstanceOf[EphemeralLayout]) { l =>
-              sharingController.ephemeralExpiration.currentValue.foreach(l.setSelectedExpiration)
+              sharingController.ephemeralExpiration.map{_.foreach{e => l.setSelectedExpiration(e)}}
               l.setCallback(new EphemeralLayout.Callback() {
-                override def onEphemeralExpirationSelected(expiration: EphemeralExpiration, close: Boolean): Unit = {
+                override def onEphemeralExpirationSelected(expiration: Option[FiniteDuration], close: Boolean): Unit = {
                   sharingController.ephemeralExpiration ! expiration
                   toggle.ephemeralExpiration ! expiration
                   if (close) bc.closedAnimated()

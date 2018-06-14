@@ -25,6 +25,9 @@ import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import com.waz.api.EphemeralExpiration;
 import com.waz.zclient.R;
+import com.waz.zclient.utils.ContextUtils;
+
+import scala.concurrent.duration.FiniteDuration;
 import timber.log.Timber;
 
 import java.lang.reflect.Field;
@@ -66,7 +69,7 @@ public class EphemeralLayout extends LinearLayout {
             @Override
             public void onClick(View v) {
                 if (callback != null) {
-                    callback.onEphemeralExpirationSelected(ephemeralExpirationsValues[numberPicker.getValue()], true);
+                    callback.onEphemeralExpirationSelected(ContextUtils.toFiniteDuration(ephemeralExpirationsValues[numberPicker.getValue()]), true);
                 }
             }
         });
@@ -74,7 +77,7 @@ public class EphemeralLayout extends LinearLayout {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 if (callback != null) {
-                    callback.onEphemeralExpirationSelected(ephemeralExpirationsValues[numberPicker.getValue()], false);
+                    callback.onEphemeralExpirationSelected(ContextUtils.toFiniteDuration(ephemeralExpirationsValues[numberPicker.getValue()]), false);
                 }
             }
         });
@@ -88,8 +91,8 @@ public class EphemeralLayout extends LinearLayout {
         addView(numberPicker);
     }
 
-    public void setSelectedExpiration(EphemeralExpiration expiration) {
-        numberPicker.setValue(expiration.ordinal());
+    public void setSelectedExpiration(FiniteDuration expiration) {
+        numberPicker.setValue((int)expiration.toCoarsest().toUnit(expiration.toCoarsest().unit()));
     }
 
     public void setCallback(Callback callback) {
@@ -97,7 +100,7 @@ public class EphemeralLayout extends LinearLayout {
     }
 
     public interface Callback {
-        void onEphemeralExpirationSelected(EphemeralExpiration expiration, boolean close);
+        void onEphemeralExpirationSelected(scala.Option<FiniteDuration> expiration, boolean close);
     }
 
     private EphemeralExpiration[] getAvailableEphemeralExpirations() {

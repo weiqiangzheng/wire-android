@@ -26,7 +26,7 @@ import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
-import com.waz.api.{EphemeralExpiration, MessageContent}
+import com.waz.api.MessageContent
 import com.waz.model.{ConvId, UserId}
 import com.waz.service.tracking.ContributionEvent
 import com.waz.service.tracking.ContributionEvent.Action
@@ -133,13 +133,13 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
               c           <- conv.head
               withService <- z.conversations.isWithService(c.id)
               isGroup     <- z.conversations.isGroupConversation(c.id)
-              _           <- z.convsUi.setEphemeral(c.id, EphemeralExpiration.NONE)
+              _           <- z.convsUi.setEphemeral(c.id, None)
               msg         <- z.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
             } {
               textView.setEnabled(true)
               if (msg.isDefined) {
                 ZMessaging.globalModule.map(_.trackingService.track(
-                  ContributionEvent(Action.Text, isGroup, c.ephemeral, withService, !c.isTeamOnly, c.isMemberFromTeamGuest(z.teamId)),
+                  ContributionEvent(Action.Text, isGroup, c.ephemeralExpiration.map(_.duration), withService, !c.isTeamOnly, c.isMemberFromTeamGuest(z.teamId)),
                   Some(z.selfUserId)
                 ))
                 getActivity.finish()

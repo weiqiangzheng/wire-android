@@ -49,6 +49,8 @@ import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R}
 
+import java.util.concurrent.TimeUnit.MILLISECONDS
+
 import scala.concurrent.duration._
 
 class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) extends Injectable {
@@ -84,7 +86,7 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   val isEditingMessage = editingMsg.map(_.isDefined)
   val ephemeralSelected = extendedCursor.map(_ == ExtendedCursorContainer.Type.EPHEMERAL)
   val emojiKeyboardVisible = extendedCursor.map(_ == ExtendedCursorContainer.Type.EMOJIS)
-  val convIsEphemeral = conv.map(_.ephemeral != EphemeralExpiration.NONE)
+  val convIsEphemeral = conv.map(_.ephemeralExpiration.isDefined)
   val convAvailability = for {
     convId <- conv.map(_.id)
     av <- convListController.availability(convId)
@@ -223,11 +225,15 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   lazy val userPreferences = inject[IUserPreferencesController]
 
   def toggleEphemeralMode() = {
-    val lastExpiration = EphemeralExpiration.getForMillis(userPreferences.getLastEphemeralValue)
-    if (lastExpiration != EphemeralExpiration.NONE) {
+    val lastExpiration = if (userPreferences.getLastEphemeralValue == 0) {
+      None
+    } else {
+      Some(Duration(userPreferences.getLastEphemeralValue, MILLISECONDS))
+    }
+    if (lastExpiration.isDefined) {
       conv.head foreach { c =>
-        zms.head.flatMap { _.convsUi.setEphemeral(c.id, if (c.ephemeral == EphemeralExpiration.NONE) lastExpiration else EphemeralExpiration.NONE) } foreach {
-          case Some((prev, current)) if prev.ephemeral == EphemeralExpiration.NONE =>
+        zms.head.flatMap { _.convsUi.setEphemeral(c.id, if (c.ephemeralExpiration.isEmpty) lastExpiration else None) } foreach {
+          case Some((prev, current)) if prev.ephemeralExpiration.isEmpty =>
             onEphemeralExpirationSelected ! current
           case _ => // ignore
         }

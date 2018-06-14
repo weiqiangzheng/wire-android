@@ -42,6 +42,8 @@ import com.waz.zclient.utils.ViewUtils;
 import java.util.List;
 import java.util.Set;
 
+import scala.concurrent.duration.FiniteDuration;
+
 public class ExtendedCursorContainer extends FrameLayout implements KeyboardHeightObserver,
                                                                     KeyboardVisibilityObserver {
     private static final String PREF__NAME = "PREF__NAME";
@@ -129,7 +131,7 @@ public class ExtendedCursorContainer extends FrameLayout implements KeyboardHeig
         emojiKeyboardLayout.setEmojis(recent, unsupported);
     }
 
-    public void openEphemeral(EphemeralLayout.Callback callback, EphemeralExpiration expiration) {
+    public void openEphemeral(EphemeralLayout.Callback callback, FiniteDuration expiration) {
         openWithType(Type.EPHEMERAL);
         ephemeralLayout.setSelectedExpiration(expiration);
         ephemeralLayout.setCallback(callback);

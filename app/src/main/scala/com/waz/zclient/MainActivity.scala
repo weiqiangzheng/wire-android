@@ -26,7 +26,6 @@ import android.os.{Build, Bundle}
 import android.support.v4.app.{Fragment, FragmentTransaction}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
-import com.waz.api._
 import com.waz.content.Preferences.Preference.PrefCodec
 import com.waz.content.UserPreferences._
 import com.waz.model.{ConvId, UserId}
@@ -365,11 +364,11 @@ class MainActivity extends BaseActivity
   def handleIntent(intent: Intent) = {
     verbose(s"handleIntent: ${intent.log}")
 
-    def switchConversation(convId: ConvId, call: Boolean = false, exp: Option[EphemeralExpiration] = None) =
+    def switchConversation(convId: ConvId, call: Boolean = false, exp: Option[FiniteDuration] = None) =
       CancellableFuture.delay(750.millis).map { _ =>
         verbose(s"setting conversation: $convId")
         conversationController.selectConv(convId, ConversationChangeRequester.INTENT).map { _ =>
-          exp.foreach(conversationController.setEphemeralExpiration)
+          conversationController.setEphemeralExpiration(exp)
           if (call)
             for {
               Some(acc) <- account.map(_.map(_.userId)).head
@@ -412,7 +411,7 @@ class MainActivity extends BaseActivity
           convs <- sharingController.targetConvs.head
           exp   <- sharingController.ephemeralExpiration.head
           _     <- sharingController.sendContent(this)
-          _     <- if (convs.size == 1) switchConversation(convs.head, exp = Some(exp)) else Future.successful({})
+          _     <- if (convs.size == 1) switchConversation(convs.head, exp = exp) else Future.successful({})
         } yield clearIntent()
 
       case OpenPageIntent(page) => page match {

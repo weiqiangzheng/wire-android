@@ -20,7 +20,6 @@ package com.waz.zclient.cursor
 import android.content.Context
 import android.util.{AttributeSet, TypedValue}
 import android.view.Gravity
-import com.waz.api.EphemeralExpiration
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.ui.utils._
@@ -35,14 +34,14 @@ class EphemeralIconButton(context: Context, attrs: AttributeSet, defStyleAttr: I
   def this(context: Context, attrs: AttributeSet) { this(context, attrs, 0) }
   def this(context: Context) { this(context, null) }
 
-  import EphemeralExpiration._
+  import java.util.concurrent.TimeUnit.{DAYS, MINUTES}
 
-  val timeString = controller.conv.map(_.ephemeral) map { expiration =>
-    val duration = expiration.duration()
-    expiration match {
-      case ONE_DAY =>
+  val timeString = controller.conv.map(_.ephemeralExpiration.map(_.duration)) map { expiration =>
+    val duration = expiration.get
+    expiration.get.unit match {
+      case DAYS =>
         getString(R.string.cursor__ephemeral_message__timer_days, String.valueOf(duration.toDays))
-      case ONE_MINUTE | FIVE_MINUTES =>
+      case MINUTES =>
         getString(R.string.cursor__ephemeral_message__timer_min, String.valueOf(duration.toMinutes))
       case _ =>
         getString(R.string.cursor__ephemeral_message__timer_seconds, String.valueOf(duration.toSeconds))

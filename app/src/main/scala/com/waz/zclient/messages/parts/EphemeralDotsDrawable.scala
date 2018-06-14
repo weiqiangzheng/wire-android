@@ -57,7 +57,7 @@ class EphemeralDotsDrawable(implicit injector: Injector, ctx: Context, ec: Event
           ClockSignal(1.second) map { now =>
             // XXX: clock should be aligned with expiryTime, currently view refresh is not in sync with actual counting
             val remaining = time.toEpochMilli - now.toEpochMilli
-            (remaining * (DotsCount + 1) / ephemeral.milliseconds).toInt max 0 min DotsCount
+            (remaining * (DotsCount + 1) / ephemeral.get.toMillis).toInt max 0 min DotsCount
           }
         }
     }

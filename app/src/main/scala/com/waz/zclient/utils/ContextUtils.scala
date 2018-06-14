@@ -29,12 +29,14 @@ import android.support.v7.app.AlertDialog
 import android.util.{AttributeSet, DisplayMetrics, TypedValue}
 import android.view.WindowManager
 import android.widget.Toast
+import com.waz.api.EphemeralExpiration
 import com.waz.utils.returning
 import com.waz.zclient.R
 import com.waz.zclient.appentry.DialogErrorMessage
 import com.waz.zclient.ui.utils.ResourceUtils
 
 import scala.concurrent.{Future, Promise}
+import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Success
 
 
@@ -251,5 +253,18 @@ object ContextUtils {
       .create
     dialog.show()
     p.future
+  }
+
+  def toFiniteDuration(exp: EphemeralExpiration): Option[FiniteDuration] = {
+    import EphemeralExpiration._
+    exp match {
+      case NONE            => None
+      case FIVE_SECONDS    => Some(5.seconds)
+      case FIFTEEN_SECONDS => Some(15.seconds)
+      case THIRTY_SECONDS  => Some(30.seconds)
+      case ONE_MINUTE      => Some(1.minutes)
+      case FIVE_MINUTES    => Some(5.minutes)
+      case ONE_DAY         => Some(1.day)
+    }
   }
 }
